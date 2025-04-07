@@ -156,4 +156,4 @@ function getBatteryData() {
 }
 
 // === Start polling every 15s
-Timer.set(15000, true, getBatteryData);
+Timer.set(60000, true, getBatteryData); // Update every minute. You don't need it often because Deye cloud update information every 5 minutes. 

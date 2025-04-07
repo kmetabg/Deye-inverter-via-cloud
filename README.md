@@ -1,7 +1,16 @@
 
 # 📡 Shelly Script: Deye Cloud Integration (Token Refresh + Live Power Readings)
 
-This script runs on Shelly Gen2/Gen3 devices and connects to the **Deye Cloud OpenAPI (Personal User)** to retrieve real-time energy data from your solar station. It supports:
+Shelly APP view, you can extract as a virtual device and use in Scenes: 
+
+<img width="405" alt="image" src="https://github.com/user-attachments/assets/2c4ee3e5-99f2-428b-8690-2753b7f975ed" /> <img width="324" alt="image" src="https://github.com/user-attachments/assets/1fbf66e5-235f-4a68-b407-1c16bf84e313" />
+
+Shelly Pro 3EM webUI view: 
+<img width="1188" alt="image" src="https://github.com/user-attachments/assets/2d7af55b-76e9-4628-b5f6-66c22352ca01" />
+
+
+
+This script runs on Shelly Gen3/Gen4/Pro devices with Firmware version 1.6+ and connects to the **Deye Cloud OpenAPI (Personal User)** to retrieve real-time energy data from your solar station. It supports:
 
 - 🔐 OAuth token request using personal user credentials
 - 🔄 Automatic token refresh every 60 days
@@ -30,9 +39,12 @@ This script runs on Shelly Gen2/Gen3 devices and connects to the **Deye Cloud Op
 
 ## ⚙️ Requirements
 
-- **Shelly Gen2 or Gen3 device** (e.g., Shelly Plus 1, Shelly Pro 4PM)
+- **Shelly Gen3/ Gen4 or Pro device** (e.g., Shelly Plus 1, Shelly Pro 4PM, Shelly Pro3EM, Shelly 3EM)
 - **Deye Cloud account** (registered as Personal User)
 - `appId`, `appSecret`, `email`, and **SHA256 hashed password** from [developer.deyecloud.com](https://developer.deyecloud.com)
+
+<img width="846" alt="image" src="https://github.com/user-attachments/assets/4dbfee56-e623-42cc-9a84-50a564990821" />
+
 
 ---
 
@@ -49,7 +61,8 @@ Use a SHA256 hashing tool (like [this one](https://emn178.github.io/online-tools
 | `number:201` | Battery SOC         | Number   |
 | `number:202` | Battery Power       | Number   |
 | `number:203` | Consumption Power   | Number   |
-| `number:204` | Wire Power          | Number   |
+| `number:204` | Grid Power          | Number   |
+| `text:200`   | Battery status      | Number   |
 
 You can add them from **Shelly Web UI → Settings → Components**.
 
@@ -62,7 +75,7 @@ let appId = "YOUR_APP_ID";
 let appSecret = "YOUR_APP_SECRET";
 let email = "your@email.com";
 let passwordHash = "your_sha256_password";  // lowercase hex
-let stationId = 12345678;  // Your Deye station ID
+let stationId = 1111111;  // Your Deye station ID
 ```
 
 ---
@@ -90,6 +103,8 @@ Example output:
 
 ## 📦 Storage Overview
 
+You don't need to create or manage KVS storage, script will do that automatically.
+
 | Key                 | Purpose            |
 |---------------------|--------------------|
 | `deye_token_1`       | Token part 1        |
@@ -104,6 +119,7 @@ Stored via `KVS.Set()` and reconstructed dynamically when needed.
 
 ## 💡 Ideas & Extensions
 
+- 🟢 Crate scenes in Shelly APP to control other devices based on PV data
 - 🟢 Control relays based on SOC or power usage
 - 🟢 Push data to MQTT or HTTP endpoints
 - 🟢 Expose `/rpc/GetDeyeStatus` endpoint

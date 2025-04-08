@@ -7,47 +7,17 @@
 // number:20    Consumption Power (W)
 // number:204   Grid Power (W)
 
-
-
-let appId = "YOUR_APP_ID"; // Change with yours
-let appSecret = "YOUR_APP_SECRET"; // Change with yours
-let email = "deye cloud acount e-mail"; // Change with yours
-let passwordHash = "deye cloud password SHA256 hash";  // lowercase SHA256 hash
-let stationId = Your_Station_Id_number; // Take this value from deyecloud web or app, it's your PV plant ID
-
-// === Token part split and store ===
-function storeTokenParts(token, expiresAt, callback) {
-  let part1 = token.substring(0, 240);
-  let part2 = token.substring(240, 480);
-  let part3 = token.substring(480, 720);
-  let part4 = token.substring(720);
-
-  Shelly.call("KVS.Set", { key: "deye_token_1", value: part1 }, function () {
-    Timer.set(100, false, function () {
-      Shelly.call("KVS.Set", { key: "deye_token_2", value: part2 }, function () {
-        Timer.set(100, false, function () {
-          Shelly.call("KVS.Set", { key: "deye_token_3", value: part3 }, function () {
-            Timer.set(100, false, function () {
-              Shelly.call("KVS.Set", { key: "deye_token_4", value: part4 }, function () {
-                Timer.set(100, false, function () {
-                  Shelly.call("KVS.Set", {
-                    key: "deye_token_expires",
-                    value: expiresAt.toString()
-                  }, function () {
-                    print("✅ Token stored in 4 parts + expiry");
-                    callback(token);
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
+// === Save token using Script.storage ===
+function saveToken(token, expiresAt, callback) {
+  Script.storage.setItem("deye_token", JSON.stringify({
+    access_token: token,
+    expires_at: expiresAt
+  }));
+  print("✅ Token saved to Script.storage");
+  callback(token);
 }
 
-// === Request token from Deye Cloud ===
+// === Request new access token from Deye Cloud ===
 function requestNewToken(callback) {
   print("🔐 Requesting new token...");
 
@@ -64,9 +34,8 @@ function requestNewToken(callback) {
     if (res && res.code === 200) {
       let data = JSON.parse(res.body);
       if (data.accessToken) {
-        let token = data.accessToken;
         let expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 60);  // 60 days
-        storeTokenParts(token, expiresAt, callback);
+        saveToken(data.accessToken, expiresAt, callback);
       } else {
         print("❌ No accessToken in response");
       }
@@ -76,39 +45,25 @@ function requestNewToken(callback) {
   });
 }
 
-// === Rebuild token from 4 parts if not expired ===
+// === Get valid token from Script.storage or refresh if needed ===
 function getToken(callback) {
-  Shelly.call("KVS.Get", { key: "deye_token_expires" }, function (resExp) {
-    let now = Math.floor(Date.now() / 1000);
-    let expires_at = resExp && resExp.value ? parseInt(resExp.value) : 0;
+  let raw = Script.storage.getItem("deye_token");
+  let now = Math.floor(Date.now() / 1000);
 
-    if (expires_at > now) {
-      Shelly.call("KVS.Get", { key: "deye_token_1" }, function (r1) {
-        let p1 = r1 && r1.value ? r1.value : "";
-
-        Shelly.call("KVS.Get", { key: "deye_token_2" }, function (r2) {
-          let p2 = r2 && r2.value ? r2.value : "";
-
-          Shelly.call("KVS.Get", { key: "deye_token_3" }, function (r3) {
-            let p3 = r3 && r3.value ? r3.value : "";
-
-            Shelly.call("KVS.Get", { key: "deye_token_4" }, function (r4) {
-              let p4 = r4 && r4.value ? r4.value : "";
-
-              let token = p1 + p2 + p3 + p4;
-              print("🔐 Using token start:", token.substring(0, 20));
-              callback(token);
-            });
-          });
-        });
-      });
-    } else {
-      requestNewToken(callback);
+  if (typeof raw === "string") {
+    let obj = JSON.parse(raw);
+    if (obj.expires_at && obj.expires_at > now) {
+      print("🔐 Using stored token...");
+      callback(obj.access_token);
+      return;
     }
-  });
+  }
+
+  // Token missing or expired
+  requestNewToken(callback);
 }
 
-// === Fetch Deye station data ===
+// === Fetch battery and power data from Deye ===
 function getBatteryData() {
   getToken(function (accessToken) {
     Shelly.call("HTTP.REQUEST", {
@@ -138,12 +93,15 @@ function getBatteryData() {
 
           print("🔋 Battery SOC: " + data.batterySOC + " %");
           Virtual.getHandle("number:201").setValue(data.batterySOC);
-          if (data.batteryPower > 0) {
-            Virtual.getHandle("text:200").setValue("Discharge");
-          } else if (data.batteryPower < 0) {
-             Virtual.getHandle("text:200").setValue("Charge");
+
+          print("🔄 Charge Power: " + data.chargePower + " W");
+          print("🔃 Discharge Power: " + data.dischargePower + " W");
+          if (data.chargePower || null) {
+          Virtual.getHandle("text:200").setValue("charging");
+          } else if (data.dischargePower || null) {
+          Virtual.getHandle("text:200").setValue("discharging"); 
           } else {
-            Virtual.getHandle("text:200").setValue("Idle");
+          Virtual.getHandle("text:200").setValue("idle");  
           }
         } else {
           print("⚠️ Unexpected response format");
@@ -155,5 +113,5 @@ function getBatteryData() {
   });
 }
 
-// === Start polling every 15s
-Timer.set(60000, true, getBatteryData); // Update every minute. You don't need it often because Deye cloud update information every 5 minutes. 
+// === Run every 15 seconds
+Timer.set(15000, true, getBatteryData);

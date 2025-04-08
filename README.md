@@ -49,7 +49,8 @@ Use a SHA256 hashing tool (like [this one](https://emn178.github.io/online-tools
 | `number:201` | Battery SOC         | Number   |
 | `number:202` | Battery Power       | Number   |
 | `number:203` | Consumption Power   | Number   |
-| `number:204` | Wire Power          | Number   |
+| `number:204` | Grid Power          | Number   |
+| `text:200`   | Battery state       | Text     |
 
 You can add them from **Shelly Web UI → Settings → Components**.
 

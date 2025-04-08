@@ -25,7 +25,7 @@ This script runs on Shelly Gen3/Gen4/Pro devices with Firmware version 1.6+ and 
 | Feature                       | Status |
 |------------------------------|--------|
 | Token authentication         | ✅      |
-| 4-part KVS token storage      | ✅      |
+| Script.storage token storage      | ✅      |
 | Token expiration handling     | ✅      |
 | Battery SOC (%)               | ✅      |
 | Battery Power (W)             | ✅      |
@@ -107,13 +107,13 @@ You don't need to create or manage KVS storage, script will do that automaticall
 
 | Key                 | Purpose            |
 |---------------------|--------------------|
-| `deye_token_1`       | Token part 1        |
+| `deye_token_1`       | Access token JSON        |
 | `deye_token_2`       | Token part 2        |
 | `deye_token_3`       | Token part 3        |
 | `deye_token_4`       | Token part 4        |
 | `deye_token_expires` | Expiration (unix)   |
 
-Stored via `KVS.Set()` and reconstructed dynamically when needed.
+Stored via `Script.storage.setItem()` and reconstructed dynamically when needed.
 
 ---
 

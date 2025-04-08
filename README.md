@@ -1,7 +1,7 @@
 
 # 📡 Shelly Script: Deye Cloud Integration (Token Refresh + Live Power Readings)
 
-This script runs on Shelly Gen2/Gen3 devices and connects to the **Deye Cloud OpenAPI (Personal User)** to retrieve real-time energy data from your solar station. It supports:
+This script runs on Shelly Gen3/Gen4/Pro devices and connects to the **Deye Cloud OpenAPI (Personal User)** to retrieve real-time energy data from your solar station. It supports:
 
 - 🔐 OAuth token request using personal user credentials
 - 🔄 Automatic token refresh every 60 days
@@ -30,7 +30,7 @@ This script runs on Shelly Gen2/Gen3 devices and connects to the **Deye Cloud Op
 
 ## ⚙️ Requirements
 
-- **Shelly Gen2 or Gen3 device** (e.g., Shelly Plus 1, Shelly Pro 4PM)
+- **Shelly Gen3/Gen4/Pro device** (e.g., Shelly Plus 1, Shelly Pro 4PM, Shelly Pro 3EM, Shelly 3EM)
 - **Deye Cloud account** (registered as Personal User)
 - `appId`, `appSecret`, `email`, and **SHA256 hashed password** from [developer.deyecloud.com](https://developer.deyecloud.com)
 
